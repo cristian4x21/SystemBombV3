@@ -14,6 +14,10 @@ export interface ToastMessage {
 }
 
 interface AppContextType {
+  // Auth
+  isAuthenticated: boolean;
+  login: (username: string, password?: string) => boolean;
+  logout: () => void;
   currentUser: User;
   setCurrentUser: (user: User) => void;
   switchRole: (role: UserRole) => void;
@@ -62,6 +66,7 @@ const AppContext = createContext<AppContextType | undefined>(undefined);
 
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [currentUser, setCurrentUser] = useState<User>(INITIAL_USERS[0]);
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [activeTab, setActiveTab] = useState<ActiveTab>('dashboard');
   
   const [resources, setResources] = useState<Resource[]>(INITIAL_RESOURCES);
@@ -78,12 +83,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       const savedMnt = localStorage.getItem('systembomb_maintenance');
       const savedLogs = localStorage.getItem('systembomb_logs');
       const savedUser = localStorage.getItem('systembomb_user');
+      const savedAuth = localStorage.getItem('systembomb_auth');
 
       if (savedRes) setResources(JSON.parse(savedRes));
       if (savedLoans) setLoans(JSON.parse(savedLoans));
       if (savedMnt) setMaintenanceList(JSON.parse(savedMnt));
       if (savedLogs) setAuditLogs(JSON.parse(savedLogs));
       if (savedUser) setCurrentUser(JSON.parse(savedUser));
+      if (savedAuth === 'true') setIsAuthenticated(true);
     } catch {
       // fallback to defaults
     }
@@ -127,6 +134,33 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       details
     };
     setAuditLogs(prev => [newLog, ...prev]);
+  };
+
+  const login = (username: string, password?: string) => {
+    const foundUser = INITIAL_USERS.find(u => u.username.toLowerCase() === username.toLowerCase().trim());
+    if (foundUser) {
+      setCurrentUser(foundUser);
+      setIsAuthenticated(true);
+      try {
+        localStorage.setItem('systembomb_auth', 'true');
+        localStorage.setItem('systembomb_user', JSON.stringify(foundUser));
+      } catch {}
+      logAction('LOGIN', 'Inicio de Sesión', `Acceso autenticado de ${foundUser.fullName} (${foundUser.rank})`);
+      addToast('success', 'Sesión Iniciada', `Bienvenido al sistema, ${foundUser.fullName}`);
+      return true;
+    } else {
+      addToast('error', 'Credenciales Inválidas', 'Usuario no reconocido en la base de datos de la compañía.');
+      return false;
+    }
+  };
+
+  const logout = () => {
+    setIsAuthenticated(false);
+    try {
+      localStorage.removeItem('systembomb_auth');
+    } catch {}
+    logAction('LOGIN', 'Cierre de Sesión', `Sesión finalizada por ${currentUser.fullName}`);
+    addToast('info', 'Sesión Cerrada', 'Ha salido del sistema SystemBomb.');
   };
 
   const switchRole = (role: UserRole) => {
@@ -355,6 +389,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   return (
     <AppContext.Provider
       value={{
+        isAuthenticated,
+        login,
+        logout,
         currentUser,
         setCurrentUser,
         switchRole,

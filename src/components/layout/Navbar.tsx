@@ -2,10 +2,10 @@
 
 import React from 'react';
 import { useApp } from '@/lib/context/AppContext';
-import { Shield, ShieldAlert, UserCheck, Flame, Radio, FileSpreadsheet, RefreshCw } from 'lucide-react';
+import { Shield, ShieldAlert, UserCheck, Flame, Radio, FileSpreadsheet, RefreshCw, LogOut } from 'lucide-react';
 
 export const Navbar: React.FC = () => {
-  const { currentUser, switchRole, exportInventoryCSV, resetToInitialData } = useApp();
+  const { currentUser, switchRole, exportInventoryCSV, resetToInitialData, logout } = useApp();
 
   return (
     <header className="sticky top-0 z-40 bg-slate-900/90 backdrop-blur-md border-b border-slate-800 text-slate-100">
@@ -107,6 +107,16 @@ export const Navbar: React.FC = () => {
             </div>
 
           </div>
+
+          {/* Logout Button */}
+          <button
+            onClick={logout}
+            title="Cerrar sesión institucional y volver al Login"
+            className="p-2 rounded-xl bg-slate-800/80 hover:bg-red-950/60 border border-slate-700/70 text-slate-400 hover:text-red-400 transition-all flex items-center gap-1.5 text-xs font-semibold"
+          >
+            <LogOut className="w-4 h-4 text-red-400" />
+            <span className="hidden sm:inline">Salir</span>
+          </button>
 
         </div>
 

@@ -10,12 +10,23 @@ import { LoansView } from '@/components/loans/LoansView';
 import { MaintenanceView } from '@/components/maintenance/MaintenanceView';
 import { AuditView } from '@/components/audit/AuditView';
 import { SecurityView } from '@/components/security/SecurityView';
+import { LoginView } from '@/components/auth/LoginView';
 import { ToastContainer } from '@/components/ui/Toast';
 import { Menu, X, Flame } from 'lucide-react';
 
 const MainAppContent: React.FC = () => {
-  const { activeTab } = useApp();
+  const { activeTab, isAuthenticated } = useApp();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  // If not logged in, render the Login Screen
+  if (!isAuthenticated) {
+    return (
+      <main className="min-h-screen">
+        <LoginView />
+        <ToastContainer />
+      </main>
+    );
+  }
 
   return (
     <div className="min-h-screen flex flex-col bg-slate-950 text-slate-100">
